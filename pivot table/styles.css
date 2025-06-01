@@ -1,0 +1,798 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.5;
+    font-size: 13px;
+}
+
+/* General container */
+.container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Main layout wrapper */
+.layout-wrapper {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    align-items: flex-start;
+}
+
+/* Builder Panel Styles */
+.builder-panel {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.builder-card {
+    background: white;
+    border: 1px solid #dde2e6;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    padding: 10px 12px;
+    border-bottom: 1px solid #dde2e6;
+}
+
+.card-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+
+.card-content {
+    padding: 12px;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fafbfc;
+    border: 1px dashed #dde2e6;
+    border-radius: 4px;
+    margin: 0;
+    min-height: 50px;
+    color: #9ca3af;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Field Items */
+.field-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background-color: white;
+    border: 1px solid #dde2e6;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.field-item:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.metric-field {
+    /* Same styling as base field-item */
+}
+
+.metric-field:hover {
+    /* Same hover styling as base field-item */
+}
+
+.attribute-field {
+    /* Same styling as base field-item */
+}
+
+.attribute-field:hover {
+    /* Same hover styling as base field-item */
+}
+
+.field-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.field-label {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+/* Table wrapper */
+.table-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.card {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid #dde2e6;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 13px;
+    background-color: white;
+}
+
+/* Ensure table header is always visible */
+thead {
+    display: table-header-group;
+    position: relative;
+    z-index: 1;
+}
+
+tbody {
+    display: table-row-group;
+}
+
+th {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dde2e6;
+    border-right: 1px solid #dde2e6;
+    padding: 0;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+    max-width: 300px;
+    position: relative;
+}
+
+th:last-child {
+    border-right: none;
+}
+
+th.numeric {
+    text-align: right;
+}
+
+/* Pivot Table Header Styles */
+.pivot-header {
+    text-align: left;
+    border-bottom: 1px solid #dde2e6;
+    background-color: #f1f3f4;
+    font-weight: 600;
+    color: #374151;
+}
+
+.pivot-header .header-content {
+    padding: 10px 12px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.pivot-header-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Quarter Header Styles (Second Level) */
+.quarter-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dde2e6;
+    border-right: 1px solid #dde2e6;
+    text-align: left;
+    position: relative;
+}
+
+.quarter-header .header-content {
+    padding: 8px 12px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.quarter-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.quarter-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Metric Header Styles (Third Level - with sorting) */
+.metric-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dde2e6;
+    border-right: 1px solid #dde2e6;
+    text-align: center;
+    position: relative;
+}
+
+.metric-header .header-content {
+    padding: 8px 12px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.metric-header .sort-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.metric-header .menu-btn {
+    width: 14px;
+    height: 14px;
+}
+
+.metric-header .menu-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Header title styles for Category and Publisher */
+.header-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Header content layout */
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    height: 40px;
+    min-height: 40px;
+}
+
+.header-content .sort-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px 0;
+    text-align: inherit;
+    font-weight: 600;
+}
+
+.header-content .sort-btn:hover {
+    color: #111827;
+}
+
+.sort-indicator {
+    margin-left: 6px;
+    font-size: 10px;
+    color: #6b7280;
+    font-weight: 600;
+    min-width: 16px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Active sort indicator styling */
+th .sort-btn .sort-indicator:not(:empty) {
+    color: #2563eb;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 2px;
+    color: #6b7280;
+    margin-left: 4px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-btn:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+/* Table body and rows */
+td {
+    padding: 8px 12px;
+    border-bottom: 1px dotted #e5e7eb;
+    border-right: 1px solid transparent;
+    font-size: 13px;
+    min-height: 32px;
+    vertical-align: middle;
+    max-width: 300px;
+    word-break: break-word;
+    background-color: white;
+    color: #374151;
+}
+
+td.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Alternate row shading - AG Grid Balham style */
+tr:nth-child(even) td {
+    background-color: #f9fafb;
+}
+
+tr:nth-child(odd) td {
+    background-color: white;
+}
+
+/* Hover effect */
+tr:hover td {
+    background-color: #f0f9ff !important;
+}
+
+/* Group row separator styling - stronger visual separation */
+.group-parent td {
+    border-top: 1px solid #9ca3af;
+}
+
+.group-parent:first-child td {
+    border-top: none;
+}
+
+/* Text wrapping classes */
+.cell-clip {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cell-wrap {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+}
+
+/* Group row styles */
+.group-row {
+    background-color: #f3f4f6 !important;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.group-row:hover {
+    background-color: #e5e7eb !important;
+}
+
+.group-row td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #d1d5db;
+}
+
+/* Collapsed group row specific styling */
+.group-row.collapsed {
+    background-color: #f3f4f6 !important;
+}
+
+.group-row.collapsed:hover {
+    background-color: #e5e7eb !important;
+}
+
+/* Group cell for rowspan in expanded groups */
+.group-cell {
+    background-color: #f9fafb !important;
+    border-right: 1px solid #e5e7eb;
+    vertical-align: top;
+    position: relative;
+}
+
+.group-cell-content {
+    display: flex;
+    align-items: center;
+    padding: 2px 0;
+    cursor: pointer;
+    min-height: 28px;
+    user-select: none;
+}
+
+.group-cell-content:hover {
+    background-color: #f3f4f6;
+    border-radius: 2px;
+}
+
+/* Expanded group rows styling */
+.child-row.expanded td {
+    border-bottom: 1px dotted #e5e7eb;
+}
+
+.child-row.expanded:hover td {
+    background-color: #f0f9ff !important;
+}
+
+.child-row.expanded:hover .group-cell {
+    background-color: #e0f2fe !important;
+}
+
+.group-chevron {
+    margin-right: 6px;
+    font-size: 11px;
+    transition: transform 0.2s ease;
+    color: #6b7280;
+    font-weight: 600;
+    min-width: 12px;
+    display: inline-block;
+}
+
+.group-chevron.expanded {
+    transform: rotate(0deg);
+}
+
+.group-name {
+    font-weight: 600;
+    color: #374151;
+}
+
+.group-total {
+    color: #6b7280;
+    font-weight: normal;
+    font-size: 12px;
+}
+
+/* Child row styles */
+.child-row {
+    background-color: transparent;
+}
+
+.child-row:nth-child(even) td {
+    background-color: #f9fafb;
+}
+
+.child-row:nth-child(odd) td {
+    background-color: white;
+}
+
+.child-row:hover td {
+    background-color: #f0f9ff !important;
+}
+
+.child-row.hidden {
+    display: none;
+}
+
+/* Child cell indentation for hierarchical display */
+.child-cell {
+    padding-left: 32px !important;
+    position: relative;
+}
+
+.child-cell::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: #d1d5db;
+}
+
+/* Context menu styles */
+.context-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 4px 0;
+    min-width: 160px;
+    z-index: 1000;
+    font-size: 13px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    color: #374151;
+}
+
+.menu-item:hover {
+    background-color: #f9fafb;
+}
+
+.menu-item:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.menu-checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.menu-checkbox:hover {
+    background-color: #f9fafb;
+}
+
+.checkbox-input {
+    margin-right: 8px;
+    accent-color: #2563eb;
+}
+
+.checkbox-label {
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.menu-separator {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+}
+
+.menu-subsection {
+    padding: 4px 0;
+}
+
+.menu-subsection-header {
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.submenu-item {
+    position: relative;
+}
+
+.submenu-arrow {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.submenu {
+    position: fixed;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 4px 0;
+    min-width: 140px;
+    z-index: 1001;
+}
+
+.aggregation-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkmark {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/* Table aggregation row */
+.table-aggregation-row {
+    background-color: #f3f4f6 !important;
+    font-weight: 600;
+    border-top: 2px solid #9ca3af;
+}
+
+.table-aggregation-row:hover {
+    background-color: #f3f4f6 !important;
+}
+
+/* Group aggregation row */
+.group-aggregation-row {
+    background-color: #f8f9fa !important;
+    font-weight: 600;
+    border-top: 1px solid #d1d5db;
+    border-bottom: 1px solid #d1d5db;
+}
+
+.group-aggregation-row:hover {
+    background-color: #f1f3f4 !important;
+}
+
+.aggregation-cell {
+    padding: 10px 12px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: none;
+}
+
+/* Group total styling */
+.group-total {
+    color: #6b7280;
+    font-weight: normal;
+    font-size: 12px;
+}
+
+.group-row .group-total {
+    margin-left: 8px;
+    font-style: italic;
+}
+
+/* Cell Selection Styles */
+.selected-cell {
+    background-color: #dbeafe !important;
+    position: relative;
+    z-index: 2;
+    box-shadow: inset 0 0 0 2px #2563eb !important;
+}
+
+/* Override hover state for selected cells */
+.selected-cell:hover,
+tr:hover .selected-cell {
+    background-color: #bfdbfe !important;
+}
+
+/* Create a cleaner selection appearance with proper overlapping */
+.selected-cell::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border: 1px solid #1d4ed8;
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 1px;
+}
+
+/* Selection cursor */
+tbody td {
+    cursor: cell;
+}
+
+/* Disable text selection during drag selection */
+.table-wrapper.selecting {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.table-wrapper.selecting tbody td {
+    cursor: crosshair;
+}
+
+/* Selection context menu styling */
+.selection-context-menu .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    color: #374151;
+}
+
+.selection-context-menu .menu-item:hover {
+    background-color: #f9fafb;
+}
+
+/* Copy feedback animation styles are injected dynamically */
+
+/* Mobile responsive adjustments */
+@media (max-width: 1024px) {
+    .layout-wrapper {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .builder-panel {
+        width: 100%;
+        order: 2;
+    }
+    
+    .table-wrapper {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .builder-panel {
+        gap: 8px;
+    }
+    
+    .builder-card {
+        margin-bottom: 8px;
+    }
+    
+    td, .header-content {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    .child-row td {
+        padding: 6px 8px;
+    }
+    
+    .group-row td {
+        padding: 8px;
+    }
+    
+    .sort-indicator {
+        font-size: 10px;
+    }
+    
+    .quarter-header .header-content {
+        padding: 4px 6px;
+        font-size: 11px;
+    }
+    
+    .metric-header .header-content {
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+} 
