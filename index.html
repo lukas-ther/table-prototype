@@ -3,192 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders Table</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Table Prototype - Project Navigator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .project-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .project-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2d3748;
+        }
+
+        .project-description {
+            color: #718096;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .project-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .project-features li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .project-features li::before {
+            content: '✓';
+            color: #48bb78;
+            font-weight: 600;
+            margin-right: 8px;
+            font-size: 1rem;
+        }
+
+        .launch-button {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .launch-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .launch-button::after {
+            content: '→';
+            margin-left: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .launch-button:hover::after {
+            transform: translateX(4px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .project-card {
+                padding: 25px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="layout-wrapper">
-            <!-- Left Panel: Table Structure Builder -->
-            <div class="builder-panel">
-                <!-- Metrics Card -->
-                <div class="builder-card">
-                    <div class="card-header">
-                        <span class="card-title">METRICS (IN COLUMNS)</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="field-item metric-field">
-                            <img src="resources/Metric.svg" alt="Metric" class="field-icon">
-                            <span class="field-label">Orders</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="header">
+            <h1>Table Prototype</h1>
+            <p>Interactive data table implementations with advanced features</p>
+        </div>
 
-                <!-- Rows Card -->
-                <div class="builder-card">
-                    <div class="card-header">
-                        <span class="card-title">ROWS</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="field-item attribute-field">
-                            <img src="resources/Attribute.svg" alt="Attribute" class="field-icon">
-                            <span class="field-label">Category</span>
-                        </div>
-                        <div class="field-item attribute-field">
-                            <img src="resources/Attribute.svg" alt="Attribute" class="field-icon">
-                            <span class="field-label">Publisher</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="projects-grid">
+            <!-- Original Table -->
+            <a href="table/" class="project-card">
+                <div class="project-icon">📊</div>
+                <h2 class="project-title">Original Table</h2>
+                <p class="project-description">
+                    A feature-rich data table with advanced sorting, grouping, and aggregation capabilities.
+                </p>
+                <ul class="project-features">
+                    <li>Multi-column sorting with priorities</li>
+                    <li>Row grouping with expand/collapse</li>
+                    <li>Cell selection and copy functionality</li>
+                    <li>Text wrapping controls</li>
+                    <li>Group and table aggregations</li>
+                    <li>Responsive design</li>
+                </ul>
+                <div class="launch-button">View Original Table</div>
+            </a>
 
-                <!-- Columns Card -->
-                <div class="builder-card">
-                    <div class="card-header">
-                        <span class="card-title">COLUMNS</span>
-                    </div>
-                </div>
-
-                <!-- Configuration Card -->
-                <div class="builder-card">
-                    <div class="card-header">
-                        <span class="card-title">CONFIGURATION</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Table -->
-            <div class="table-wrapper">
-                <div class="card">
-                    <table id="orders-table">
-                        <thead>
-                            <tr>
-                                <th>
-                                    <div class="header-content">
-                                        <button class="sort-btn" data-column="category" aria-label="Sort by category">
-                                            Category
-                                            <span class="sort-indicator" aria-hidden="true"></span>
-                                        </button>
-                                        <button class="menu-btn" data-column="category" aria-label="Menu for category column">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                                <circle cx="8" cy="3" r="1.5"/>
-                                                <circle cx="8" cy="8" r="1.5"/>
-                                                <circle cx="8" cy="13" r="1.5"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="header-content">
-                                        <button class="sort-btn" data-column="publisher" aria-label="Sort by publisher">
-                                            Publisher
-                                            <span class="sort-indicator" aria-hidden="true"></span>
-                                        </button>
-                                        <button class="menu-btn" data-column="publisher" aria-label="Menu for publisher column">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                                <circle cx="8" cy="3" r="1.5"/>
-                                                <circle cx="8" cy="8" r="1.5"/>
-                                                <circle cx="8" cy="13" r="1.5"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </th>
-                                <th class="numeric">
-                                    <div class="header-content">
-                                        <button class="sort-btn" data-column="orders" aria-label="Sort by orders">
-                                            Orders
-                                            <span class="sort-indicator" aria-hidden="true"></span>
-                                        </button>
-                                        <button class="menu-btn" data-column="orders" aria-label="Menu for orders column">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                                <circle cx="8" cy="3" r="1.5"/>
-                                                <circle cx="8" cy="8" r="1.5"/>
-                                                <circle cx="8" cy="13" r="1.5"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <!-- Content will be generated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- Pivot Table -->
+            <a href="pivot table/" class="project-card">
+                <div class="project-icon">📈</div>
+                <h2 class="project-title">Pivot Table</h2>
+                <p class="project-description">
+                    Advanced pivot table with quarterly breakdowns and multi-level headers for data analysis.
+                </p>
+                <ul class="project-features">
+                    <li>3-level header structure</li>
+                    <li>Quarterly Order date breakdown (Q1-Q4 2024)</li>
+                    <li>Category and Publisher dimensions</li>
+                    <li>All original table features preserved</li>
+                    <li>Enhanced aggregation display</li>
+                    <li>Date field in Columns panel</li>
+                </ul>
+                <div class="launch-button">View Pivot Table</div>
+            </a>
         </div>
     </div>
-
-    <!-- Context menu for column actions -->
-    <div id="context-menu" class="context-menu" style="display: none;">
-        <label class="menu-item menu-checkbox">
-            <input type="checkbox" id="wrap-toggle" class="checkbox-input">
-            <span class="checkbox-label">Wrap text</span>
-        </label>
-        <div class="menu-separator"></div>
-        
-        <!-- Aggregation options for numeric columns -->
-        <div id="aggregation-options" style="display: none;">
-            <div class="menu-subsection">
-                <div class="menu-subsection-header">Aggregation</div>
-                
-                <!-- Group aggregation submenu -->
-                <div class="menu-item submenu-item" id="group-aggregation-item">
-                    <span>Aggregate by Group</span>
-                    <span class="submenu-arrow">▸</span>
-                </div>
-                
-                <!-- Table aggregation submenu -->
-                <div class="menu-item submenu-item" id="table-aggregation-item">
-                    <span>Aggregate Entire Table</span>
-                    <span class="submenu-arrow">▸</span>
-                </div>
-            </div>
-            <div class="menu-separator"></div>
-        </div>
-        
-        <button id="group-action" class="menu-item"></button>
-    </div>
-
-    <!-- Submenu for group aggregation -->
-    <div id="group-aggregation-submenu" class="context-menu submenu" style="display: none;">
-        <div class="menu-item aggregation-option" data-type="group" data-function="none">
-            <span>No Aggregation</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-        <div class="menu-item aggregation-option" data-type="group" data-function="sum">
-            <span>Sum</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-        <div class="menu-item aggregation-option" data-type="group" data-function="average">
-            <span>Average</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-        <div class="menu-item aggregation-option" data-type="group" data-function="count">
-            <span>Count</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-    </div>
-
-    <!-- Submenu for table aggregation -->
-    <div id="table-aggregation-submenu" class="context-menu submenu" style="display: none;">
-        <div class="menu-item aggregation-option" data-type="table" data-function="none">
-            <span>No Aggregation</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-        <div class="menu-item aggregation-option" data-type="table" data-function="sum">
-            <span>Sum</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-        <div class="menu-item aggregation-option" data-type="table" data-function="average">
-            <span>Average</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-        <div class="menu-item aggregation-option" data-type="table" data-function="count">
-            <span>Count</span>
-            <span class="checkmark" style="display: none;">✓</span>
-        </div>
-    </div>
-
-    <script type="module" src="script.js"></script>
 </body>
 </html> 
