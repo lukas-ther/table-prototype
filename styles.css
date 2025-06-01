@@ -6,10 +6,11 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f5f7fa;
     color: #333;
-    line-height: 1.4;
+    line-height: 1.5;
+    font-size: 13px;
 }
 
 /* Container and card layout */
@@ -22,8 +23,9 @@ body {
 
 .card {
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e1e5e9;
     max-width: 960px;
     width: 100%;
     overflow: hidden;
@@ -34,17 +36,25 @@ table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
+    font-size: 13px;
+    background-color: white;
 }
 
 th {
-    background-color: #fafafa;
-    border-bottom: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dde2e6;
+    border-right: 1px solid #dde2e6;
     padding: 0;
     text-align: left;
     font-weight: 600;
-    color: #666;
-    font-size: 14px;
+    color: #495057;
+    font-size: 13px;
     max-width: 300px;
+    position: relative;
+}
+
+th:last-child {
+    border-right: none;
 }
 
 th.numeric {
@@ -56,9 +66,9 @@ th.numeric {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-left: 32px;
-    padding-right: 16px;
-    height: 48px;
+    padding: 8px 12px;
+    height: 32px;
+    min-height: 32px;
 }
 
 .header-content .sort-btn {
@@ -70,53 +80,62 @@ th.numeric {
     font: inherit;
     color: inherit;
     cursor: pointer;
-    padding: 8px 0;
+    padding: 4px 0;
     text-align: inherit;
+    font-weight: 600;
 }
 
 .header-content .sort-btn:hover {
-    color: #000;
+    color: #212529;
 }
 
 .sort-indicator {
-    margin-left: 8px;
-    font-size: 12px;
-    color: #666;
+    margin-left: 6px;
+    font-size: 11px;
+    color: #6c757d;
     font-weight: 600;
-    min-width: 20px;
+    min-width: 16px;
     text-align: left;
     white-space: nowrap;
 }
 
 /* Active sort indicator styling */
 th .sort-btn .sort-indicator:not(:empty) {
-    color: #2563eb;
+    color: #0d6efd;
 }
 
 .menu-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    color: #666;
-    margin-left: 8px;
+    padding: 2px;
+    border-radius: 2px;
+    color: #6c757d;
+    margin-left: 4px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .menu-btn:hover {
-    background-color: #f0f0f0;
-    color: #000;
+    background-color: #e9ecef;
+    color: #495057;
 }
 
 /* Table body and rows */
 td {
-    padding: 12px 32px 12px 32px;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
-    min-height: 48px;
-    vertical-align: top;
+    padding: 6px 12px;
+    border-bottom: 1px dotted #dee2e6;
+    border-right: 1px solid transparent;
+    font-size: 13px;
+    min-height: 28px;
+    vertical-align: middle;
     max-width: 300px;
     word-break: break-word;
+    background-color: white;
+    color: #495057;
 }
 
 td.numeric {
@@ -124,8 +143,27 @@ td.numeric {
     font-variant-numeric: tabular-nums;
 }
 
+/* Alternate row shading - AG Grid Balham style */
+tr:nth-child(even) td {
+    background-color: #f8f9fa;
+}
+
+tr:nth-child(odd) td {
+    background-color: white;
+}
+
+/* Hover effect */
 tr:hover td {
-    background-color: #fafafa;
+    background-color: #e3f2fd !important;
+}
+
+/* Group row separator styling - stronger visual separation */
+.group-parent td {
+    border-top: 1px solid #adb5bd;
+}
+
+.group-parent:first-child td {
+    border-top: none;
 }
 
 /* Text wrapping classes */
@@ -143,32 +181,25 @@ tr:hover td {
 
 /* Group row styles */
 .group-row {
-    background-color: #f8f9fa !important;
+    background-color: #f1f3f4 !important;
     font-weight: 600;
     cursor: pointer;
 }
 
 .group-row:hover {
-    background-color: #e9ecef !important;
+    background-color: #e8eaed !important;
 }
 
 .group-row td {
-    padding-left: 16px;
-}
-
-/* Group parent styles (for the main group header) */
-.group-parent {
-    border-top: 2px solid #dee2e6;
-}
-
-.group-parent:first-child {
-    border-top: none;
+    padding: 8px 12px;
+    border-bottom: 1px solid #dee2e6;
 }
 
 .group-chevron {
-    margin-right: 8px;
-    font-size: 12px;
+    margin-right: 6px;
+    font-size: 11px;
     transition: transform 0.2s ease;
+    color: #6c757d;
 }
 
 .group-chevron.expanded {
@@ -177,11 +208,13 @@ tr:hover td {
 
 .group-name {
     font-weight: 600;
+    color: #495057;
 }
 
 .group-total {
-    color: #666;
+    color: #6c757d;
     font-weight: normal;
+    font-size: 12px;
 }
 
 /* Child row styles with improved hierarchy */
@@ -189,24 +222,31 @@ tr:hover td {
     background-color: transparent;
 }
 
-.child-row:hover td {
+.child-row:nth-child(even) td {
     background-color: #f8f9fa;
+}
+
+.child-row:nth-child(odd) td {
+    background-color: white;
+}
+
+.child-row:hover td {
+    background-color: #e3f2fd !important;
 }
 
 /* Group child rows - subtle indentation for better hierarchy */
 .group-child td:first-child {
-    padding-left: 48px;
+    padding-left: 32px;
     position: relative;
 }
 
-/* Optional: Add a subtle visual indicator for child rows */
 .group-child td:first-child::before {
     content: '';
     position: absolute;
-    left: 28px;
-    top: 50%;
-    width: 12px;
-    height: 1px;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
     background-color: #dee2e6;
 }
 
@@ -214,104 +254,98 @@ tr:hover td {
     display: none;
 }
 
-/* Context menu */
+/* Context menu styles */
 .context-menu {
-    position: absolute;
+    position: fixed;
     background: white;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #dee2e6;
     border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 4px 0;
     min-width: 160px;
+    z-index: 1000;
+    font-size: 13px;
 }
 
 .menu-item {
-    display: block;
-    width: 100%;
-    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
     background: none;
     border: none;
+    width: 100%;
     text-align: left;
-    cursor: pointer;
-    font-size: 14px;
-    color: #333;
+    font-size: 13px;
+    color: #495057;
 }
 
 .menu-item:hover {
-    background-color: #f0f0f0;
+    background-color: #f8f9fa;
 }
 
 .menu-item:disabled {
-    color: #999;
+    opacity: 0.6;
     cursor: not-allowed;
 }
 
-/* Checkbox menu item */
 .menu-checkbox {
     display: flex;
     align-items: center;
-    cursor: pointer;
-    padding: 8px 16px;
 }
 
 .menu-checkbox:hover {
-    background-color: #f0f0f0;
+    background-color: #f8f9fa;
 }
 
 .checkbox-input {
-    margin: 0;
     margin-right: 8px;
-    cursor: pointer;
+    accent-color: #0d6efd;
 }
 
 .checkbox-label {
     cursor: pointer;
-    user-select: none;
+    font-size: 13px;
 }
 
-/* Menu separator */
 .menu-separator {
     height: 1px;
-    background-color: #e0e0e0;
+    background-color: #dee2e6;
     margin: 4px 0;
 }
 
-/* Aggregation menu styles */
 .menu-subsection {
     padding: 4px 0;
 }
 
 .menu-subsection-header {
-    padding: 4px 16px;
+    padding: 4px 12px;
     font-size: 12px;
     font-weight: 600;
-    color: #666;
+    color: #6c757d;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .submenu-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     position: relative;
 }
 
 .submenu-arrow {
     font-size: 12px;
-    color: #666;
-    margin-left: 8px;
+    color: #6c757d;
 }
 
-/* Submenu positioning */
 .submenu {
-    position: absolute;
+    position: fixed;
     background: white;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #dee2e6;
     border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1001;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 4px 0;
     min-width: 140px;
+    z-index: 1001;
 }
 
 .aggregation-option {
@@ -321,72 +355,68 @@ tr:hover td {
 }
 
 .checkmark {
-    color: #2563eb;
+    color: #0d6efd;
     font-weight: 600;
-    margin-left: 8px;
 }
 
-/* Table aggregation row styles */
+/* Table aggregation row */
 .table-aggregation-row {
-    background-color: #f8f9fa !important;
-    border-top: 2px solid #2563eb;
+    background-color: #f1f3f4 !important;
     font-weight: 600;
+    border-top: 2px solid #adb5bd;
 }
 
 .table-aggregation-row:hover {
-    background-color: #f8f9fa !important;
+    background-color: #f1f3f4 !important;
 }
 
 .aggregation-cell {
-    color: #2563eb !important;
+    padding: 8px 12px;
     font-weight: 600;
-    padding-top: 16px !important;
-    padding-bottom: 16px !important;
+    color: #495057;
+    border-bottom: none;
 }
 
-/* Group aggregation styling */
+/* Group total styling */
 .group-total {
-    color: #666;
+    color: #6c757d;
     font-weight: normal;
+    font-size: 12px;
 }
 
-/* When group aggregation is active, style the total differently */
 .group-row .group-total {
-    color: #2563eb;
-    font-weight: 600;
+    margin-left: 8px;
+    font-style: italic;
 }
 
-/* Responsive adjustments */
+/* Mobile responsive adjustments */
 @media (max-width: 768px) {
     .container {
         padding: 20px 10px;
     }
     
     td, .header-content {
-        padding-left: 16px;
-        padding-right: 16px;
+        padding: 6px 8px;
+        font-size: 12px;
     }
     
     .child-row td {
-        padding-left: 32px;
+        padding: 6px 8px;
     }
     
     .group-row td {
-        padding-left: 8px;
+        padding: 8px;
     }
     
-    /* Adjust child row indentation for mobile */
     .group-child td:first-child {
-        padding-left: 32px;
+        padding-left: 24px;
     }
     
     .group-child td:first-child::before {
         left: 16px;
     }
     
-    /* Adjust sort indicator spacing for mobile */
     .sort-indicator {
-        min-width: 16px;
-        font-size: 11px;
+        font-size: 10px;
     }
 } 
