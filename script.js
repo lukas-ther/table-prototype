@@ -327,43 +327,81 @@ function handleWrapToggle(event) {
 
 // Apply text wrap classes to all cells in the table
 function applyTextWrapClasses() {
-    console.log('Applying text wrap classes:', textWrapStates); // Debug log
-    
     const table = document.getElementById('orders-table');
     const rows = table.querySelectorAll('tbody tr');
     
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        cells.forEach((cell, index) => {
-            // Map cell index to column name
-            let column;
-            switch(index) {
-                case 0:
-                    column = 'category';
-                    break;
-                case 1:
-                    column = 'publisher';
-                    break;
-                case 2:
-                    column = 'orders';
-                    break;
-                default:
-                    return; // Skip if unknown column
+        
+        // Skip aggregation rows
+        if (row.classList.contains('table-aggregation-row')) {
+            return;
+        }
+        
+        // Handle different row types
+        if (row.classList.contains('group-row')) {
+            // Group header rows - always have 3 columns with standard layout
+            applyWrapToCell(cells[0], 'category');
+            applyWrapToCell(cells[1], 'publisher');
+            applyWrapToCell(cells[2], 'orders');
+        } else if (row.classList.contains('child-row') && row.classList.contains('expanded')) {
+            // Expanded group rows - need to detect the structure
+            if (cells.length === 3) {
+                // First row of expanded group with rowspan
+                if (groupBy === 'category') {
+                    // [category with rowspan, publisher, orders]
+                    applyWrapToCell(cells[0], 'category');
+                    applyWrapToCell(cells[1], 'publisher');
+                    applyWrapToCell(cells[2], 'orders');
+                } else if (groupBy === 'publisher') {
+                    // [category, publisher with rowspan, orders]
+                    applyWrapToCell(cells[0], 'category');
+                    applyWrapToCell(cells[1], 'publisher');
+                    applyWrapToCell(cells[2], 'orders');
+                } else if (groupBy === 'orders') {
+                    // [category, publisher, orders with rowspan]
+                    applyWrapToCell(cells[0], 'category');
+                    applyWrapToCell(cells[1], 'publisher');
+                    applyWrapToCell(cells[2], 'orders');
+                }
+            } else if (cells.length === 2) {
+                // Subsequent rows of expanded group (missing grouped column due to rowspan)
+                if (groupBy === 'category') {
+                    // [publisher, orders] - category column is covered by rowspan
+                    applyWrapToCell(cells[0], 'publisher');
+                    applyWrapToCell(cells[1], 'orders');
+                } else if (groupBy === 'publisher') {
+                    // [category, orders] - publisher column is covered by rowspan
+                    applyWrapToCell(cells[0], 'category');
+                    applyWrapToCell(cells[1], 'orders');
+                } else if (groupBy === 'orders') {
+                    // [category, publisher] - orders column is covered by rowspan
+                    applyWrapToCell(cells[0], 'category');
+                    applyWrapToCell(cells[1], 'publisher');
+                }
             }
-            
-            // Remove both classes first
-            cell.classList.remove('cell-clip', 'cell-wrap');
-            
-            // Apply appropriate class based on current state
-            if (textWrapStates[column]) {
-                cell.classList.add('cell-wrap');
-                console.log(`Applied cell-wrap to ${column} cell`); // Debug log
-            } else {
-                cell.classList.add('cell-clip');
-                console.log(`Applied cell-clip to ${column} cell`); // Debug log
-            }
-        });
+        } else {
+            // Regular flat table rows or other row types
+            applyWrapToCell(cells[0], 'category');
+            applyWrapToCell(cells[1], 'publisher');
+            applyWrapToCell(cells[2], 'orders');
+        }
     });
+}
+
+// Helper function to apply wrap classes to a specific cell
+function applyWrapToCell(cell, column) {
+    if (!cell) return;
+    
+    // Remove both classes first
+    cell.classList.remove('cell-clip', 'cell-wrap');
+    
+    // Apply appropriate class based on current state
+    if (textWrapStates[column]) {
+        cell.classList.add('cell-wrap');
+    } else {
+        cell.classList.add('cell-clip');
+    }
 }
 
 // Handle keyboard navigation
@@ -486,7 +524,36 @@ function hasTableAggregation() {
 
 // Handle group row click (toggle collapse)
 function handleGroupToggle(event) {
-    const groupKey = event.currentTarget.dataset.groupKey;
+    event.stopPropagation(); // Prevent event bubbling
+    
+    let groupKey;
+    
+    // Check if this is a traditional group row or an inline group cell
+    if (event.currentTarget.dataset.groupKey) {
+        // Traditional group row (collapsed state)
+        groupKey = event.currentTarget.dataset.groupKey;
+    } else if (event.currentTarget.querySelector && event.currentTarget.querySelector('[data-group-key]')) {
+        // Clicked on group cell content (expanded state)
+        groupKey = event.currentTarget.querySelector('[data-group-key]').dataset.groupKey;
+    } else if (event.currentTarget.dataset && event.currentTarget.dataset.groupKey) {
+        // Direct click on group cell content
+        groupKey = event.currentTarget.dataset.groupKey;
+    } else {
+        // Fallback: try to find group key in the element tree
+        let element = event.currentTarget;
+        while (element && !groupKey) {
+            if (element.dataset && element.dataset.groupKey) {
+                groupKey = element.dataset.groupKey;
+                break;
+            }
+            element = element.parentElement;
+        }
+    }
+    
+    if (!groupKey) {
+        console.warn('Could not find group key for toggle event');
+        return;
+    }
     
     if (collapsedGroups.has(groupKey)) {
         collapsedGroups.delete(groupKey);
@@ -499,7 +566,28 @@ function handleGroupToggle(event) {
 
 // Render the table
 function renderTable() {
+    // Clear the table body
     tableBody.innerHTML = '';
+    
+    // Ensure the table structure is intact
+    const table = document.getElementById('orders-table');
+    if (!table) {
+        console.error('Table element not found!');
+        return;
+    }
+    
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    
+    if (!thead) {
+        console.error('Table thead not found!');
+        return;
+    }
+    
+    if (!tbody) {
+        console.error('Table tbody not found!');
+        return;
+    }
     
     if (groupBy) {
         renderGroupedTable();
@@ -547,90 +635,137 @@ function renderFlatTable() {
     }
 }
 
-// Render grouped table with improved hierarchy
+// Render grouped table with AG Grid "hiding expanded parent rows" behavior
 function renderGroupedTable() {
     const groups = getGroups();
     
-    groups.forEach(group => {
-        // Create group header row - shows the group value and total
-        const groupRow = document.createElement('tr');
-        groupRow.className = 'group-row group-parent';
-        groupRow.dataset.groupKey = group.key;
-        groupRow.addEventListener('click', handleGroupToggle);
-        
+    groups.forEach((group, groupIndex) => {
         const isCollapsed = collapsedGroups.has(group.key);
-        const chevron = isCollapsed ? '▸' : '▾';
         
-        // Build group row HTML based on which column we're grouping by
-        if (groupBy === 'category') {
-            // When grouping by category, show category name in first column
-            const ordersAggregation = getGroupAggregationValue('orders', group.items);
-            groupRow.innerHTML = `
-                <td>
-                    <span class="group-chevron ${isCollapsed ? '' : 'expanded'}">${chevron}</span>
-                    <span class="group-name">${group.key}</span>
-                </td>
-                <td></td>
-                <td class="numeric">
-                    <span class="group-total">${ordersAggregation !== null ? formatAggregationValue(ordersAggregation, 'orders') : ''}</span>
-                </td>
-            `;
-        } else if (groupBy === 'publisher') {
-            // When grouping by publisher, show publisher name in second column
-            const ordersAggregation = getGroupAggregationValue('orders', group.items);
-            groupRow.innerHTML = `
-                <td></td>
-                <td>
-                    <span class="group-chevron ${isCollapsed ? '' : 'expanded'}">${chevron}</span>
-                    <span class="group-name">${group.key}</span>
-                </td>
-                <td class="numeric">
-                    <span class="group-total">${ordersAggregation !== null ? formatAggregationValue(ordersAggregation, 'orders') : ''}</span>
-                </td>
-            `;
-        } else if (groupBy === 'orders') {
-            // When grouping by orders, show orders value in third column
-            groupRow.innerHTML = `
-                <td></td>
-                <td></td>
-                <td class="numeric">
-                    <span class="group-chevron ${isCollapsed ? '' : 'expanded'}">${chevron}</span>
-                    <span class="group-name">${formatNumber(group.key)}</span>
-                    <span class="group-total"> (${group.items.length} items)</span>
-                </td>
-            `;
-        }
-        
-        tableBody.appendChild(groupRow);
-        
-        // Add child rows if not collapsed - with empty cell in the grouped column
-        if (!isCollapsed) {
-            group.items.forEach(item => {
+        if (isCollapsed) {
+            // Collapsed: show traditional group header row
+            const groupRow = document.createElement('tr');
+            groupRow.className = 'group-row group-parent collapsed';
+            groupRow.dataset.groupKey = group.key;
+            groupRow.addEventListener('click', handleGroupToggle);
+            groupRow.style.cursor = 'pointer';
+            
+            const chevron = '▸';
+            
+            // Build collapsed group row HTML based on which column we're grouping by
+            if (groupBy === 'category') {
+                const ordersAggregation = getGroupAggregationValue('orders', group.items);
+                groupRow.innerHTML = `
+                    <td>
+                        <span class="group-chevron">${chevron}</span>
+                        <span class="group-name">${group.key}</span>
+                        <span class="group-total"> (${group.items.length} items)</span>
+                    </td>
+                    <td></td>
+                    <td class="numeric">
+                        <span class="group-total">${ordersAggregation !== null ? formatAggregationValue(ordersAggregation, 'orders') : ''}</span>
+                    </td>
+                `;
+            } else if (groupBy === 'publisher') {
+                const ordersAggregation = getGroupAggregationValue('orders', group.items);
+                groupRow.innerHTML = `
+                    <td></td>
+                    <td>
+                        <span class="group-chevron">${chevron}</span>
+                        <span class="group-name">${group.key}</span>
+                        <span class="group-total"> (${group.items.length} items)</span>
+                    </td>
+                    <td class="numeric">
+                        <span class="group-total">${ordersAggregation !== null ? formatAggregationValue(ordersAggregation, 'orders') : ''}</span>
+                    </td>
+                `;
+            } else if (groupBy === 'orders') {
+                groupRow.innerHTML = `
+                    <td></td>
+                    <td></td>
+                    <td class="numeric">
+                        <span class="group-chevron">${chevron}</span>
+                        <span class="group-name">${formatNumber(group.key)}</span>
+                        <span class="group-total"> (${group.items.length} items)</span>
+                    </td>
+                `;
+            }
+            
+            tableBody.appendChild(groupRow);
+            
+        } else {
+            // Expanded: use rowspan to merge grouped column with first child row (hide expanded parent row)
+            const chevron = '▾';
+            const groupSize = group.items.length;
+            
+            group.items.forEach((item, index) => {
                 const childRow = document.createElement('tr');
-                childRow.className = 'child-row group-child';
+                childRow.className = 'child-row group-child expanded';
                 
-                // Build child row HTML with empty cell in the grouped column
-                if (groupBy === 'category') {
-                    // When grouped by category, leave category column empty
-                    childRow.innerHTML = `
-                        <td></td>
-                        <td>${item.publisher}</td>
-                        <td class="numeric">${formatNumber(item.orders)}</td>
-                    `;
-                } else if (groupBy === 'publisher') {
-                    // When grouped by publisher, leave publisher column empty
-                    childRow.innerHTML = `
-                        <td>${item.category}</td>
-                        <td></td>
-                        <td class="numeric">${formatNumber(item.orders)}</td>
-                    `;
-                } else if (groupBy === 'orders') {
-                    // When grouped by orders, leave orders column empty (rare case)
-                    childRow.innerHTML = `
-                        <td>${item.category}</td>
-                        <td>${item.publisher}</td>
-                        <td class="numeric"></td>
-                    `;
+                if (index === 0) {
+                    // First row: include the grouped column with rowspan and chevron (this replaces the group header)
+                    if (groupBy === 'category') {
+                        childRow.innerHTML = `
+                            <td rowspan="${groupSize}" class="group-cell">
+                                <div class="group-cell-content" data-group-key="${group.key}">
+                                    <span class="group-chevron expanded">${chevron}</span>
+                                    <span class="group-name">${group.key}</span>
+                                </div>
+                            </td>
+                            <td>${item.publisher}</td>
+                            <td class="numeric">${formatNumber(item.orders)}</td>
+                        `;
+                    } else if (groupBy === 'publisher') {
+                        childRow.innerHTML = `
+                            <td>${item.category}</td>
+                            <td rowspan="${groupSize}" class="group-cell">
+                                <div class="group-cell-content" data-group-key="${group.key}">
+                                    <span class="group-chevron expanded">${chevron}</span>
+                                    <span class="group-name">${group.key}</span>
+                                </div>
+                            </td>
+                            <td class="numeric">${formatNumber(item.orders)}</td>
+                        `;
+                    } else if (groupBy === 'orders') {
+                        childRow.innerHTML = `
+                            <td>${item.category}</td>
+                            <td>${item.publisher}</td>
+                            <td rowspan="${groupSize}" class="numeric group-cell">
+                                <div class="group-cell-content" data-group-key="${group.key}">
+                                    <span class="group-chevron expanded">${chevron}</span>
+                                    <span class="group-name">${formatNumber(group.key)}</span>
+                                </div>
+                            </td>
+                        `;
+                    }
+                    
+                    // Add click handler to the group cell content for toggling
+                    setTimeout(() => {
+                        const groupCellContent = childRow.querySelector('.group-cell-content');
+                        if (groupCellContent) {
+                            groupCellContent.addEventListener('click', handleGroupToggle);
+                            groupCellContent.style.cursor = 'pointer';
+                        }
+                    }, 0);
+                    
+                } else {
+                    // Subsequent rows: exclude the grouped column (covered by rowspan from first row)
+                    if (groupBy === 'category') {
+                        childRow.innerHTML = `
+                            <td>${item.publisher}</td>
+                            <td class="numeric">${formatNumber(item.orders)}</td>
+                        `;
+                    } else if (groupBy === 'publisher') {
+                        childRow.innerHTML = `
+                            <td>${item.category}</td>
+                            <td class="numeric">${formatNumber(item.orders)}</td>
+                        `;
+                    } else if (groupBy === 'orders') {
+                        childRow.innerHTML = `
+                            <td>${item.category}</td>
+                            <td>${item.publisher}</td>
+                        `;
+                    }
                 }
                 
                 tableBody.appendChild(childRow);
