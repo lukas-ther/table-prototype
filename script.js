@@ -18,6 +18,13 @@ let currentMenuColumn = null; // Track which column's menu is currently open
 // New aggregation state
 let aggregationStates = {}; // Track aggregation settings per column: { column: { groupAggregation: { function: 'sum' }, tableAggregation: { function: 'sum' } } }
 
+// Cell selection state
+let isSelecting = false; // Track if user is currently selecting cells
+let selectionStart = null; // { row: number, col: number, cell: HTMLElement }
+let selectionEnd = null; // { row: number, col: number, cell: HTMLElement }
+let selectedCells = new Set(); // Set of selected cell elements for quick lookup
+let selectionContextMenu = null; // Reference to selection context menu
+
 // DOM elements
 const tableBody = document.getElementById('table-body');
 const contextMenu = document.getElementById('context-menu');
@@ -145,6 +152,9 @@ function setupEventListeners() {
 
     // Keyboard support for menu
     document.addEventListener('keydown', handleKeydown);
+    
+    // Cell selection event listeners
+    setupCellSelectionListeners();
 }
 
 // Handle multi-column sorting
@@ -421,6 +431,569 @@ function handleKeydown(event) {
     }
 }
 
+// Cell Selection Functions
+
+// Set up cell selection event listeners
+function setupCellSelectionListeners() {
+    // Copy functionality
+    document.addEventListener('keydown', handleCopyKeydown);
+    
+    // Global mouse up event (in case user releases mouse outside table)
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    
+    // Global click handler to clear selection when clicking outside table
+    document.addEventListener('click', handleGlobalClick);
+    
+    // Table mouse events for cell selection (will be added to table after render)
+    setupTableSelectionEvents();
+}
+
+// Setup table-specific selection events (called after table render)
+function setupTableSelectionEvents() {
+    const table = document.getElementById('orders-table');
+    if (!table) return;
+    
+    // Remove existing listeners to avoid duplicates
+    table.removeEventListener('mousedown', handleTableMouseDown);
+    table.removeEventListener('mousemove', handleTableMouseMove);
+    table.removeEventListener('mouseup', handleTableMouseUp);
+    table.removeEventListener('contextmenu', handleTableContextMenu);
+    
+    // Add fresh listeners
+    table.addEventListener('mousedown', handleTableMouseDown);
+    table.addEventListener('mousemove', handleTableMouseMove);
+    table.addEventListener('mouseup', handleTableMouseUp);
+    table.addEventListener('contextmenu', handleTableContextMenu);
+    
+    // Prevent text selection during cell selection
+    table.addEventListener('selectstart', handleSelectStart);
+}
+
+// Handle copy keyboard shortcuts
+function handleCopyKeydown(event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'c' && selectedCells.size > 0) {
+        event.preventDefault();
+        copySelectedCells();
+    }
+}
+
+// Handle mouse down on table
+function handleTableMouseDown(event) {
+    // Only handle left clicks on table cells
+    if (event.button !== 0) return;
+    
+    const cell = event.target.closest('td');
+    if (!cell) return;
+    
+    // Don't start selection if clicking on group toggle controls
+    if (event.target.closest('.group-cell-content')) return;
+    
+    // Clear any existing selection (but allow the click to proceed)
+    clearSelection();
+    
+    // Start new selection
+    const position = getCellPosition(cell);
+    if (position) {
+        isSelecting = true;
+        selectionStart = { ...position, cell };
+        selectionEnd = { ...position, cell };
+        
+        // Add selecting class to table wrapper
+        const tableWrapper = document.querySelector('.table-wrapper');
+        if (tableWrapper) {
+            tableWrapper.classList.add('selecting');
+        }
+        
+        // Add initial cell to selection
+        addCellToSelection(cell);
+        
+        event.preventDefault();
+    }
+}
+
+// Handle mouse move for drag selection
+function handleTableMouseMove(event) {
+    if (!isSelecting || !selectionStart) return;
+    
+    const cell = event.target.closest('td');
+    if (!cell) return;
+    
+    const position = getCellPosition(cell);
+    if (!position) return;
+    
+    // Update selection end position
+    selectionEnd = { ...position, cell };
+    
+    // Update visual selection
+    updateSelection();
+    
+    event.preventDefault();
+}
+
+// Handle mouse up to end selection
+function handleTableMouseUp(event) {
+    if (isSelecting) {
+        isSelecting = false;
+        
+        // Remove selecting class from table wrapper
+        const tableWrapper = document.querySelector('.table-wrapper');
+        if (tableWrapper) {
+            tableWrapper.classList.remove('selecting');
+        }
+        
+        event.preventDefault();
+    }
+}
+
+// Handle global mouse up (for when user releases outside table)
+function handleGlobalMouseUp(event) {
+    if (isSelecting) {
+        isSelecting = false;
+        
+        // Remove selecting class from table wrapper
+        const tableWrapper = document.querySelector('.table-wrapper');
+        if (tableWrapper) {
+            tableWrapper.classList.remove('selecting');
+        }
+    }
+}
+
+// Handle global click (clear selection when clicking outside table)
+function handleGlobalClick(event) {
+    // Don't clear selection if we're currently selecting (dragging)
+    if (isSelecting) return;
+    
+    // Don't clear selection if clicking on table or its controls
+    const table = document.getElementById('orders-table');
+    const contextMenus = document.querySelectorAll('.context-menu, .selection-context-menu');
+    const builderPanel = document.querySelector('.builder-panel');
+    
+    if (table && table.contains(event.target)) return;
+    
+    // Don't clear if clicking on context menus
+    for (const menu of contextMenus) {
+        if (menu.contains(event.target)) return;
+    }
+    
+    // Don't clear if clicking on builder panel
+    if (builderPanel && builderPanel.contains(event.target)) return;
+    
+    // Clear selection if clicking anywhere else
+    if (selectedCells.size > 0) {
+        clearSelection();
+    }
+}
+
+// Handle context menu for selected cells
+function handleTableContextMenu(event) {
+    const cell = event.target.closest('td');
+    if (!cell || selectedCells.size === 0) return;
+    
+    // Only show context menu if right-clicking on a selected cell
+    if (!selectedCells.has(cell)) return;
+    
+    event.preventDefault();
+    showSelectionContextMenu(event.clientX, event.clientY);
+}
+
+// Prevent text selection during cell selection
+function handleSelectStart(event) {
+    if (isSelecting) {
+        event.preventDefault();
+    }
+}
+
+// Get cell position (row, col) in the table
+function getCellPosition(cell) {
+    const row = cell.parentElement;
+    if (!row) return null;
+    
+    const tbody = row.parentElement;
+    if (!tbody) return null;
+    
+    const rowIndex = Array.from(tbody.children).indexOf(row);
+    
+    // Handle different row types for column calculation
+    let colIndex;
+    
+    if (!groupBy) {
+        // Flat table - simple column index
+        colIndex = Array.from(row.children).indexOf(cell);
+    } else {
+        // Grouped table - need to calculate logical column position
+        colIndex = getLogicalColumnIndex(cell, row);
+    }
+    
+    return { row: rowIndex, col: colIndex };
+}
+
+// Get logical column index for grouped table accounting for rowspan
+function getLogicalColumnIndex(cell, row) {
+    const cellIndex = Array.from(row.children).indexOf(cell);
+    
+    // Check if this is a group row (collapsed)
+    if (row.classList.contains('group-row')) {
+        return cellIndex; // Group rows have normal 3-column structure
+    }
+    
+    // Check if this is an expanded group row
+    if (row.classList.contains('child-row') && row.classList.contains('expanded')) {
+        const cells = Array.from(row.children);
+        
+        if (cells.length === 3) {
+            // First row of expanded group with rowspan - normal indexing
+            return cellIndex;
+        } else if (cells.length === 2) {
+            // Subsequent row of expanded group - missing grouped column
+            if (groupBy === 'category') {
+                // [publisher, orders] - add 1 to account for missing category column
+                return cellIndex + 1;
+            } else if (groupBy === 'publisher') {
+                // [category, orders] - if cellIndex is 0, it's category (col 0)
+                // if cellIndex is 1, it's orders (col 2)
+                return cellIndex === 0 ? 0 : 2;
+            } else if (groupBy === 'orders') {
+                // [category, publisher] - normal indexing for first two columns
+                return cellIndex;
+            }
+        }
+    }
+    
+    // Fallback to simple indexing
+    return cellIndex;
+}
+
+// Add cell to selection
+function addCellToSelection(cell) {
+    cell.classList.add('selected-cell');
+    selectedCells.add(cell);
+}
+
+// Remove cell from selection
+function removeCellFromSelection(cell) {
+    cell.classList.remove('selected-cell');
+    selectedCells.delete(cell);
+}
+
+// Clear all selection
+function clearSelection() {
+    selectedCells.forEach(cell => {
+        cell.classList.remove('selected-cell');
+    });
+    selectedCells.clear();
+    selectionStart = null;
+    selectionEnd = null;
+    hideSelectionContextMenu();
+}
+
+// Update selection based on start and end positions
+function updateSelection() {
+    if (!selectionStart || !selectionEnd) return;
+    
+    // Clear current selection
+    selectedCells.forEach(cell => {
+        cell.classList.remove('selected-cell');
+    });
+    selectedCells.clear();
+    
+    // Calculate selection bounds
+    const startRow = Math.min(selectionStart.row, selectionEnd.row);
+    const endRow = Math.max(selectionStart.row, selectionEnd.row);
+    const startCol = Math.min(selectionStart.col, selectionEnd.col);
+    const endCol = Math.max(selectionStart.col, selectionEnd.col);
+    
+    // Select cells in rectangular range
+    const tbody = document.querySelector('#orders-table tbody');
+    if (!tbody) return;
+    
+    const rows = Array.from(tbody.children);
+    for (let rowIdx = startRow; rowIdx <= endRow && rowIdx < rows.length; rowIdx++) {
+        const row = rows[rowIdx];
+        const cells = Array.from(row.children);
+        
+        // For each cell in the row, check if its logical column position falls within selection
+        cells.forEach((cell, physicalIndex) => {
+            if (cell && cell.tagName === 'TD') {
+                const logicalCol = groupBy ? getLogicalColumnIndex(cell, row) : physicalIndex;
+                
+                // Add cell to selection if its logical column is within bounds
+                if (logicalCol >= startCol && logicalCol <= endCol) {
+                    addCellToSelection(cell);
+                }
+            }
+        });
+    }
+}
+
+// Copy selected cells to clipboard
+function copySelectedCells() {
+    if (selectedCells.size === 0) return;
+    
+    // Get selection bounds and organize cells by position
+    const cellPositions = Array.from(selectedCells).map(cell => ({
+        cell,
+        position: getCellPosition(cell)
+    })).filter(item => item.position);
+    
+    if (cellPositions.length === 0) return;
+    
+    // Sort by row then column
+    cellPositions.sort((a, b) => {
+        if (a.position.row !== b.position.row) {
+            return a.position.row - b.position.row;
+        }
+        return a.position.col - b.position.col;
+    });
+    
+    // Group by rows
+    const rowGroups = {};
+    cellPositions.forEach(({ cell, position }) => {
+        if (!rowGroups[position.row]) {
+            rowGroups[position.row] = [];
+        }
+        rowGroups[position.row].push({ cell, col: position.col });
+    });
+    
+    // Build clipboard text
+    const rows = Object.keys(rowGroups).sort((a, b) => parseInt(a) - parseInt(b));
+    const clipboardRows = rows.map(rowKey => {
+        const rowCells = rowGroups[rowKey].sort((a, b) => a.col - b.col);
+        return rowCells.map(({ cell }) => {
+            // Get clean text content, handling group cells and special content
+            let text = cell.textContent || '';
+            // Remove group chevrons and extra whitespace
+            text = text.replace(/[▸▾]/g, '').trim();
+            // Handle numeric formatting
+            if (cell.classList.contains('numeric')) {
+                text = text.replace(/,/g, ''); // Remove thousands separators
+            }
+            return text;
+        }).join('\t');
+    });
+    
+    const clipboardText = clipboardRows.join('\n');
+    
+    // Copy to clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(clipboardText).then(() => {
+            showCopyFeedback();
+        }).catch(err => {
+            console.warn('Failed to copy to clipboard:', err);
+            fallbackCopyToClipboard(clipboardText);
+        });
+    } else {
+        fallbackCopyToClipboard(clipboardText);
+    }
+}
+
+// Fallback copy method for browsers without clipboard API
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showCopyFeedback();
+    } catch (err) {
+        console.warn('Failed to copy to clipboard:', err);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+// Show visual feedback for copy operation
+function showCopyFeedback(type = '') {
+    // Create temporary feedback element
+    const feedback = document.createElement('div');
+    const message = type ? `Copied ${selectedCells.size} cells ${type}` : `Copied ${selectedCells.size} cells`;
+    feedback.textContent = message;
+    feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #2563eb;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 13px;
+        z-index: 10000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        animation: fadeInOut 2s ease-in-out;
+    `;
+    
+    // Add fade animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(feedback);
+    
+    // Remove after animation
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.parentNode.removeChild(feedback);
+        }
+        if (style.parentNode) {
+            style.parentNode.removeChild(style);
+        }
+    }, 2000);
+}
+
+// Show selection context menu
+function showSelectionContextMenu(x, y) {
+    hideSelectionContextMenu();
+    
+    const menu = document.createElement('div');
+    menu.className = 'selection-context-menu';
+    menu.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y}px;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 4px 0;
+        min-width: 160px;
+        z-index: 1000;
+        font-size: 13px;
+    `;
+    
+    // Copy option
+    const copyOption = document.createElement('button');
+    copyOption.className = 'menu-item';
+    copyOption.innerHTML = `Copy (${selectedCells.size} cells)`;
+    copyOption.addEventListener('click', () => {
+        copySelectedCells();
+        hideSelectionContextMenu();
+    });
+    
+    // Copy with headers option (if applicable)
+    const copyWithHeadersOption = document.createElement('button');
+    copyWithHeadersOption.className = 'menu-item';
+    copyWithHeadersOption.innerHTML = 'Copy with Headers';
+    copyWithHeadersOption.addEventListener('click', () => {
+        copySelectedCellsWithHeaders();
+        hideSelectionContextMenu();
+    });
+    
+    menu.appendChild(copyOption);
+    menu.appendChild(copyWithHeadersOption);
+    
+    document.body.appendChild(menu);
+    selectionContextMenu = menu;
+    
+    // Close menu when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', hideSelectionContextMenu, { once: true });
+    }, 0);
+}
+
+// Hide selection context menu
+function hideSelectionContextMenu() {
+    if (selectionContextMenu) {
+        selectionContextMenu.remove();
+        selectionContextMenu = null;
+    }
+}
+
+// Copy selected cells with column headers
+function copySelectedCellsWithHeaders() {
+    if (selectedCells.size === 0) return;
+    
+    // Get column headers
+    const headers = ['Category', 'Publisher', 'Orders'];
+    
+    // Get selection bounds and organize cells by position
+    const cellPositions = Array.from(selectedCells).map(cell => ({
+        cell,
+        position: getCellPosition(cell)
+    })).filter(item => item.position);
+    
+    if (cellPositions.length === 0) return;
+    
+    // Sort by row then column
+    cellPositions.sort((a, b) => {
+        if (a.position.row !== b.position.row) {
+            return a.position.row - b.position.row;
+        }
+        return a.position.col - b.position.col;
+    });
+    
+    // Get column bounds
+    const minCol = Math.min(...cellPositions.map(item => item.position.col));
+    const maxCol = Math.max(...cellPositions.map(item => item.position.col));
+    
+    // Build header row
+    const headerRow = [];
+    for (let col = minCol; col <= maxCol && col < headers.length; col++) {
+        headerRow.push(headers[col]);
+    }
+    
+    // Group by rows for data
+    const rowGroups = {};
+    cellPositions.forEach(({ cell, position }) => {
+        if (!rowGroups[position.row]) {
+            rowGroups[position.row] = [];
+        }
+        rowGroups[position.row].push({ cell, col: position.col });
+    });
+    
+    // Build data rows
+    const rows = Object.keys(rowGroups).sort((a, b) => parseInt(a) - parseInt(b));
+    const dataRows = rows.map(rowKey => {
+        const rowCells = rowGroups[rowKey].sort((a, b) => a.col - b.col);
+        const rowData = [];
+        
+        // Fill in data for each column in the selection
+        for (let col = minCol; col <= maxCol; col++) {
+            const cellData = rowCells.find(item => item.col === col);
+            if (cellData) {
+                let text = cellData.cell.textContent || '';
+                // Remove group chevrons and extra whitespace
+                text = text.replace(/[▸▾]/g, '').trim();
+                // Handle numeric formatting
+                if (cellData.cell.classList.contains('numeric')) {
+                    text = text.replace(/,/g, ''); // Remove thousands separators
+                }
+                rowData.push(text);
+            } else {
+                rowData.push(''); // Empty cell
+            }
+        }
+        
+        return rowData.join('\t');
+    });
+    
+    // Combine header and data
+    const clipboardText = [headerRow.join('\t'), ...dataRows].join('\n');
+    
+    // Copy to clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(clipboardText).then(() => {
+            showCopyFeedback('with headers');
+        }).catch(err => {
+            console.warn('Failed to copy to clipboard:', err);
+            fallbackCopyToClipboard(clipboardText);
+        });
+    } else {
+        fallbackCopyToClipboard(clipboardText);
+    }
+}
+
 // Get multi-column sorted data
 function getSortedData() {
     if (sortStates.length === 0) {
@@ -566,6 +1139,9 @@ function handleGroupToggle(event) {
 
 // Render the table
 function renderTable() {
+    // Clear any existing cell selection
+    clearSelection();
+    
     // Clear the table body
     tableBody.innerHTML = '';
     
@@ -598,6 +1174,8 @@ function renderTable() {
     // Apply text wrap classes after rendering
     requestAnimationFrame(() => {
         applyTextWrapClasses();
+        // Setup cell selection events after rendering
+        setupTableSelectionEvents();
     });
 }
 
